@@ -1,0 +1,28 @@
+#!/bin/sh -eu
+
+# This script keeps sd-boot up-to-date on a Debian
+# kernel package installation.
+#
+# This has to be ordered after the initramfs generation somehow.
+
+exec </dev/null >&2
+
+# Ideally the path should be tied to where systemd's kernel-install is packaged
+KERNEL_INSTALL="$(which 2>/dev/null kernel-install)"
+
+version="$1"
+image_location="$2"
+
+# avoid running multiple times
+if [ -n "$DEB_MAINT_PARAMS" ]; then
+    eval set -- "$DEB_MAINT_PARAMS"
+    case "${1-}" in
+        configure) verb=add ;;
+        remove|purge) verb=remove ;;
+        *) exit 0 ;;
+    esac
+fi
+
+$KERNEL_INSTALL $verb $version $image_location
+
+exit 0
